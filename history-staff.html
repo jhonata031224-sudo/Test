@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prince Games - Staff History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { background-color: #06090f; color: white; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card { background: #11171f; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .btn-filter { background: rgba(255,255,255,0.05); color: #6b7280; transition: all 0.3s; }
+        .btn-filter.active { background: #00d9ff; color: #000; font-weight: bold; }
+        #notification-modal { background: rgba(6, 9, 15, 0.9); backdrop-filter: blur(15px); }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="p-6">
+
+    <header class="flex justify-between items-center mb-10">
+        <i class="fas fa-arrow-left text-gray-400 cursor-pointer" onclick="window.location.href='dashboard-staff.html'"></i>
+        <div class="flex items-center gap-2">
+            <h1 class="font-bold uppercase tracking-tighter text-[10px]">PRINCEGAMES <span class="bg-white/10 px-2 py-0.5 rounded text-gray-500">STAFF</span></h1>
+        </div>
+        <button onclick="toggleNotif()" class="relative bg-[#11171f] px-4 py-2 rounded-xl text-[9px] font-bold border border-white/5 uppercase">
+            <i class="fas fa-bell mr-2 text-orange-400"></i> Order F&B
+            <span id="notif-badge" class="absolute -top-1 -right-1 bg-red-500 text-[8px] px-1.5 py-0.5 rounded-full hidden">0</span>
+        </button>
+    </header>
+
+    <h2 class="text-4xl font-black mb-2 tracking-tight">Riwayat Sesi</h2>
+    <p class="text-xs text-gray-500 mb-8 font-medium">Semua riwayat sesi yang sudah selesai diproses staff.</p>
+
+    <div class="relative mb-6">
+        <i class="fas fa-search absolute left-4 top-4 text-gray-500 text-xs"></i>
+        <input id="search-input" type="text" placeholder="Cari nama pelanggan atau unit..."
+               class="w-full bg-[#11171f] border border-white/5 py-3.5 pl-12 pr-4 rounded-2xl text-xs focus:outline-none focus:border-cyan-500/50"
+               oninput="applyFilter()">
+    </div>
+
+    <div class="flex gap-2 mb-8">
+        <button onclick="setFilter('semua', this)" class="btn-filter active px-6 py-2.5 rounded-xl text-[10px] uppercase font-bold tracking-widest">Semua</button>
+        <button onclick="setFilter('manual', this)" class="btn-filter px-6 py-2.5 rounded-xl text-[10px] uppercase font-bold tracking-widest">Manual</button>
+        <button onclick="setFilter('otomatis', this)" class="btn-filter px-6 py-2.5 rounded-xl text-[10px] uppercase font-bold tracking-widest">Otomatis</button>
+    </div>
+
+    <main id="history-list" class="space-y-4 pb-20">
+        <div id="loading-state" class="flex flex-col items-center justify-center py-20 opacity-40">
+            <i class="fas fa-spinner fa-spin text-3xl text-cyan-400 mb-4"></i>
+            <p class="text-[10px] font-black uppercase tracking-[0.3em]">Memuat riwayat...</p>
+        </div>
+    </main>
+
+    <!-- Modal Notifikasi F&B -->
+    <div id="notification-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6">
+        <div class="w-full max-w-sm glass-card rounded-[2.5rem] p-8 border border-white/10 shadow-2xl">
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-utensils text-orange-400"></i>
+                    <h3 class="font-black text-xs uppercase tracking-widest">Notifikasi Pesanan F&B</h3>
+                </div>
+                <button onclick="toggleNotif()" class="text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div id="notif-content" class="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+                <div class="text-center py-10 opacity-30">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-3"></i>
+                    <p class="text-[10px] font-bold uppercase tracking-widest">Memuat...</p>
+                </div>
+            </div>
+
+            <button onclick="clearAllNotifications()" class="w-full mt-8 pt-6 border-t border-white/5 text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] hover:text-red-400 transition-colors flex justify-center items-center gap-3">
+                <i class="fas fa-trash-alt text-[8px]"></i> Bersihkan semua
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, where, writeBatch, doc }
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAqa9FTlNuVXGHnINFN1qz8-aoGTrn-0g4",
+            authDomain: "prince-games-f170a.firebaseapp.com",
+            projectId: "prince-games-f170a",
+            storageBucket: "prince-games-f170a.firebasestorage.app",
+            messagingSenderId: "245728198046",
+            appId: "1:245728198046:web:b6136e05459f23a96677f5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db  = getFirestore(app);
+
+        let allSesi    = [];
+        let allFnb     = [];
+        let activeFilter = 'semua';
+
+        const fmtRp = n => 'Rp ' + (n || 0).toLocaleString('id-ID');
+
+        function fmtTanggal(val) {
+            if (!val) return '-';
+            try {
+                const d = val.toDate ? val.toDate() : new Date(val);
+                return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' })
+                     + ', ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+            } catch { return String(val); }
+        }
+
+        function hitungDurasi(tanggal, startTime, stopTime) {
+            if (!startTime || !stopTime || !tanggal) return '-';
+            try {
+                const base = tanggal; // "YYYY-MM-DD"
+                const s = new Date(`${base}T${startTime}:00`);
+                const e = new Date(`${base}T${stopTime}:00`);
+                const diff = e - s;
+                if (isNaN(diff) || diff <= 0) return '-';
+                const h = Math.floor(diff / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                return h > 0 ? `${h}j ${m}m` : `${m}m`;
+            } catch { return '-'; }
+        }
+
+        function renderSesi(data) {
+            const list    = document.getElementById('history-list');
+            const keyword = document.getElementById('search-input').value.toLowerCase().trim();
+
+            let filtered = [...data];
+            if (activeFilter === 'manual')   filtered = filtered.filter(d => d.alasan === 'Stop Manual');
+            if (activeFilter === 'otomatis') filtered = filtered.filter(d => d.alasan === 'Otomatis');
+            if (keyword) {
+                filtered = filtered.filter(d =>
+                    (d.customerName || '').toLowerCase().includes(keyword) ||
+                    (d.unitId || '').toLowerCase().includes(keyword)
+                );
+            }
+
+            document.getElementById('loading-state')?.remove();
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20 opacity-30">
+                        <div class="w-16 h-16 border-2 border-dashed border-gray-500 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-box-open text-2xl"></i>
+                        </div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em]">Belum Ada Riwayat</p>
+                        <p class="text-[8px] mt-2 font-bold text-gray-600">Riwayat akan muncul setelah sesi diselesaikan.</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map((d, i) => {
+                const durasi = hitungDurasi(d.tanggal, d.startTime, d.stopTime);
+                const tgl    = fmtTanggal(d.createdAt || d.tanggal);
+                const isOto  = d.alasan === 'Otomatis';
+                const badge  = isOto
+                    ? `<span class="ml-2 text-[8px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full uppercase">Otomatis</span>`
+                    : `<span class="ml-2 text-[8px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full uppercase">Manual</span>`;
+
+                return `
+                <div class="glass-card p-6 rounded-[2rem] border-l-4 border-cyan-400 fade-in" style="animation-delay:${i * 0.04}s">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h4 class="font-black text-lg tracking-tight">${d.unitId || '-'} ${badge}</h4>
+                            <p class="text-[10px] text-gray-500 font-bold mt-1 uppercase">${d.customerName || 'Walk-in'} · ${tgl}</p>
+                        </div>
+                        <p class="text-xl font-black text-cyan-400 tracking-tighter">${fmtRp(d.price)}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white/5 p-4 rounded-2xl">
+                            <p class="text-[8px] text-gray-500 font-bold uppercase mb-1 tracking-widest">Durasi</p>
+                            <p class="text-sm font-bold">${durasi}</p>
+                        </div>
+                        <div class="bg-white/5 p-4 rounded-2xl">
+                            <p class="text-[8px] text-gray-500 font-bold uppercase mb-1 tracking-widest">Tipe</p>
+                            <p class="text-sm font-bold">${d.unitType || '-'}</p>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderNotif(data) {
+            const content = document.getElementById('notif-content');
+            const badge   = document.getElementById('notif-badge');
+
+            if (data.length === 0) {
+                content.innerHTML = `
+                    <div class="text-center py-10 opacity-20">
+                        <i class="fas fa-check-circle text-4xl mb-3"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest">Tidak ada pesanan F&B</p>
+                    </div>`;
+                badge.classList.add('hidden');
+                return;
+            }
+
+            // Hitung total item F&B
+            const totalItems = data.reduce((sum, b) => sum + (b.fnbOrders?.length || 0), 0);
+            badge.textContent = totalItems;
+            badge.classList.remove('hidden');
+
+            content.innerHTML = data.map(item => {
+                const waktu = item.createdAt
+                    ? fmtTanggal(item.createdAt).split(', ')[1]
+                    : (item.time || '-');
+
+                return (item.fnbOrders || []).map(f => `
+                    <div class="p-5 bg-white/5 rounded-3xl border border-white/5 flex justify-between items-center">
+                        <div>
+                            <h5 class="text-xs font-black">${f.name} <span class="text-gray-500 text-[10px] ml-1">x${f.qty}</span></h5>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase mt-1">${item.console || '-'} · ${(item.customerName || '-').toUpperCase()}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-cyan-400 text-xs font-black">${fmtRp(f.subtotal ?? (f.price * f.qty))}</p>
+                            <p class="text-[8px] text-gray-600 mt-1">${waktu}</p>
+                        </div>
+                    </div>`).join('');
+            }).join('');
+        }
+
+        // ── Realtime: riwayat sesi dari 'pendapatan' ──────────────────
+        onSnapshot(
+            query(collection(db, 'pendapatan'), orderBy('createdAt', 'desc')),
+            snap => {
+                allSesi = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderSesi(allSesi);
+            },
+            err => {
+                console.error('pendapatan error:', err);
+                document.getElementById('history-list').innerHTML = `
+                    <div class="text-center py-20 opacity-30">
+                        <i class="fas fa-exclamation-circle text-3xl mb-3 text-red-400"></i>
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em]">Gagal memuat data</p>
+                        <p class="text-[8px] mt-2 text-gray-600">${err.message}</p>
+                    </div>`;
+            }
+        );
+
+        // ── Realtime: pesanan F&B dari 'bookings' yang belum diproses ─
+        onSnapshot(
+            query(
+                collection(db, 'bookings'),
+                where('status', '==', 'Menunggu Konfirmasi Staff')
+            ),
+            snap => {
+                allFnb = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(d => d.fnbOrders && d.fnbOrders.length > 0);
+                renderNotif(allFnb);
+            }
+        );
+
+        // ── Filter ────────────────────────────────────────────────────
+        window.setFilter = function(type, btn) {
+            activeFilter = type;
+            document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderSesi(allSesi);
+        };
+
+        window.applyFilter = () => renderSesi(allSesi);
+
+        window.toggleNotif = () =>
+            document.getElementById('notification-modal').classList.toggle('hidden');
+
+        // ── Hapus semua notif: update status booking ke 'F&B Diproses' ─
+        window.clearAllNotifications = async function() {
+            if (allFnb.length === 0) { toggleNotif(); return; }
+
+            const result = await Swal.fire({
+                title: 'Hapus Semua Notif?',
+                text: 'Pesanan F&B akan ditandai sudah diproses.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonText: 'Batal',
+                confirmButtonText: 'Ya, Bersihkan',
+                background: '#11171f',
+                color: '#fff'
+            });
+            if (!result.isConfirmed) return;
+
+            try {
+                const batch = writeBatch(db);
+                allFnb.forEach(item => {
+                    batch.update(doc(db, 'bookings', item.id), {
+                        fnbProcessed: true,
+                        status: 'F&B Diproses'
+                    });
+                });
+                await batch.commit();
+
+                toggleNotif();
+                Swal.fire({
+                    toast: true, position: 'top', icon: 'success',
+                    title: 'Notifikasi dibersihkan!',
+                    showConfirmButton: false, timer: 1500,
+                    background: '#11171f', color: '#fff'
+                });
+            } catch(e) {
+                console.error(e);
+                Swal.fire({ icon:'error', title:'Gagal', text: e.message, background:'#11171f', color:'#fff' });
+            }
+        };
+    </script>
+</body>
+</html>

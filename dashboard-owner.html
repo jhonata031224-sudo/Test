@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prince Games – Owner Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --bg:#0d1117;--surface:#161b22;--surface2:#1c2128;
+            --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.05);
+            --text:#e6edf3;--muted:#7d8590;--cyan:#00d9ff;--green:#3fb950;
+            --orange:#f78166;--purple:#bc8cff;--yellow:#e3b341;--red:#ff4d4f;
+        }
+        html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;overflow-x:hidden}
+
+        /* ── Topbar ── */
+        .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border2);background:var(--bg);position:sticky;top:0;z-index:100}
+        .logo{display:flex;align-items:center;gap:7px;font-weight:800;font-size:14px;letter-spacing:-.3px}
+        .logo-icon{width:26px;height:26px;background:rgba(0,217,255,0.12);border:1px solid rgba(0,217,255,0.3);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:11px}
+        .logo span{color:var(--cyan)}
+        .role-badge{background:rgba(0,217,255,0.08);border:1px solid rgba(0,217,255,0.2);border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:.5px}
+        .nav-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;text-decoration:none;font-family:'Space Grotesk',sans-serif}
+        .nav-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.15)}
+        .btn-logout{background:rgba(247,129,102,0.08);border:1px solid rgba(247,129,102,0.2);color:var(--orange)}
+        .btn-logout:hover{background:rgba(247,129,102,0.15);color:var(--orange)}
+
+        /* ── Layout ── */
+        .main{padding:28px 24px 100px;max-width:1100px;margin:0 auto}
+        .page-header{margin-bottom:24px}
+        .page-header h1{font-size:28px;font-weight:800;letter-spacing:-.5px}
+        .page-header p{font-size:13px;color:var(--muted);margin-top:3px}
+
+        /* ── KPI ── */
+        .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+        .kpi-card{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:16px 18px}
+        .kpi-label{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+        .kpi-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px}
+        .kpi-icon.green{background:rgba(63,185,80,0.12);color:var(--green)}
+        .kpi-icon.cyan{background:rgba(0,217,255,0.12);color:var(--cyan)}
+        .kpi-icon.purple{background:rgba(188,140,255,0.12);color:var(--purple)}
+        .kpi-value{font-size:22px;font-weight:800;letter-spacing:-.5px}
+        .kpi-sub{font-size:11px;color:var(--muted);margin-top:5px}
+        .kpi-sub.pos{color:var(--green)}
+
+        /* ── Revenue Card (besar) ── */
+        .revenue-card{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:20px;margin-bottom:16px}
+        .revenue-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:gap;gap:10px}
+        .revenue-title{font-size:13px;font-weight:700}
+        .revenue-amount{font-size:32px;font-weight:800;letter-spacing:-1px;color:var(--green);margin-bottom:4px}
+        .revenue-label{font-size:11px;color:var(--muted)}
+
+        /* ── Filter Pills ── */
+        .filter-pills{display:flex;gap:6px;flex-wrap:wrap}
+        .pill{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .2s;font-family:'Space Grotesk',sans-serif}
+        .pill:hover{border-color:var(--cyan);color:var(--cyan)}
+        .pill.active{background:rgba(0,217,255,0.12);border-color:rgba(0,217,255,0.4);color:var(--cyan)}
+
+        /* ── Reset Btn ── */
+        .btn-reset{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:rgba(255,77,79,0.08);border:1px solid rgba(255,77,79,0.25);color:var(--red);font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Space Grotesk',sans-serif}
+        .btn-reset:hover{background:rgba(255,77,79,0.15)}
+
+        /* ── Tabel Riwayat Pendapatan ── */
+        .income-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+        .income-table th{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border2)}
+        .income-table td{padding:9px 10px;border-bottom:1px solid var(--border2);vertical-align:middle}
+        .income-table tr:last-child td{border-bottom:none}
+        .income-table tr:hover td{background:rgba(255,255,255,0.02)}
+        .badge-auto{background:rgba(0,217,255,0.1);color:var(--cyan);padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700}
+        .badge-manual{background:rgba(255,77,79,0.1);color:var(--red);padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700}
+
+        /* ── Two-col & section ── */
+        .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+        .section-card{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:18px 20px}
+        .section-title{font-size:13px;font-weight:700;margin-bottom:14px}
+        .empty-state{font-size:12px;color:var(--muted)}
+        .session-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border2)}
+        .session-row:last-child{border-bottom:none;padding-bottom:0}
+        .session-row:first-child{padding-top:0}
+        .session-name{font-size:13px;font-weight:700}
+        .session-price{font-size:11px;color:var(--muted);margin-top:2px}
+        .session-timer{font-size:15px;font-weight:800;color:var(--cyan);font-variant-numeric:tabular-nums}
+        .completed-price{font-size:12px;font-weight:700;color:var(--green)}
+
+        /* ── Bottom Nav ── */
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#161b22;border-top:1px solid rgba(255,255,255,0.08);padding:10px 8px 24px;display:flex;justify-content:space-around;z-index:200;border-radius:22px 22px 0 0}
+        .bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 14px;border-radius:12px;transition:all .2s;text-decoration:none;font-family:'Space Grotesk',sans-serif}
+        .bnav-item i{font-size:18px}
+        .bnav-item span{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+        .bnav-item.inactive{color:#7d8590}
+        .bnav-item.active{color:#00d9ff}
+
+        @media(max-width:640px){
+            .two-col{grid-template-columns:1fr}
+            .kpi-grid{grid-template-columns:repeat(3,1fr)}
+            .topbar{padding:12px 16px}
+            .main{padding:20px 16px 100px}
+            .page-header h1{font-size:22px}
+            .revenue-amount{font-size:24px}
+            .revenue-header{flex-direction:column;align-items:flex-start}
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           RESPONSIVE DESKTOP — Prince Games Owner Panel
+           Sidebar di ≥768px, bottom nav di <768px
+        ═══════════════════════════════════════════════════════════════ */
+        @media (min-width: 768px) {
+            .bottom-nav, .bnav-item span { display: none !important; }
+            body { padding-bottom: 0 !important; display: flex; flex-direction: column; min-height: 100vh; }
+            .owner-layout { display: flex; min-height: 100vh; }
+            .owner-sidebar {
+                display: flex !important;
+                flex-direction: column;
+                width: 220px;
+                min-width: 220px;
+                background: #0d1117;
+                border-right: 1px solid rgba(255,255,255,0.07);
+                position: sticky;
+                top: 0;
+                height: 100vh;
+                padding: 20px 12px 20px;
+                z-index: 50;
+                gap: 4px;
+            }
+            .sidebar-logo {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: 800;
+                font-size: 14px;
+                padding: 0 8px 20px;
+                border-bottom: 1px solid rgba(255,255,255,0.07);
+                margin-bottom: 8px;
+            }
+            .sidebar-logo .logo-icon {
+                width: 30px; height: 30px;
+                background: #00d9ff;
+                border-radius: 8px;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 11px; font-weight: 900; color: #000;
+            }
+            .sidebar-logo .logo-cyan { color: #00d9ff; }
+            .sidebar-nav-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: 10px;
+                font-size: 12px;
+                font-weight: 700;
+                color: #4b5563;
+                text-decoration: none;
+                transition: all 0.15s;
+                cursor: pointer;
+            }
+            .sidebar-nav-item:hover { background: rgba(255,255,255,0.04); color: #9ca3af; }
+            .sidebar-nav-item.active { background: rgba(0,217,255,0.08); color: #00d9ff; }
+            .sidebar-nav-item i { width: 16px; text-align: center; font-size: 13px; }
+            .sidebar-spacer { flex: 1; }
+            .sidebar-logout {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: 10px;
+                font-size: 12px;
+                font-weight: 700;
+                color: #f78166;
+                cursor: pointer;
+                border: none;
+                background: rgba(247,129,102,0.06);
+                border: 1px solid rgba(247,129,102,0.15);
+                font-family: inherit;
+                transition: all 0.15s;
+                width: 100%;
+            }
+            .sidebar-logout:hover { background: rgba(247,129,102,0.14); }
+            .owner-main-content { flex: 1; min-width: 0; overflow-y: auto; }
+            .topbar { max-width: 100% !important; }
+            /* Widen content area on desktop */
+            .p-5 > .max-w-\[450px\],
+            .p-5 > .max-w-\[480px\],
+            .p-5 > .max-w-\[500px\] { max-width: 900px !important; }
+        }
+        @media (max-width: 767px) {
+            .owner-sidebar { display: none !important; }
+            .owner-layout { display: block; }
+            .owner-main-content { display: block; }
+        }
+    </style>
+</head>
+<body>
+<div class="owner-layout">
+    <aside class="owner-sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">PG</div>
+            PRINCE<span class="logo-cyan">GAMES</span>
+        </div>
+            <a href="dashboard-owner.html" class="sidebar-nav-item active"><i class="fas fa-th-large"></i> Beranda</a>
+            <a href="manage-owner.html" class="sidebar-nav-item"><i class="fas fa-tools"></i> Kelola</a>
+            <a href="history-owner.html" class="sidebar-nav-item"><i class="fas fa-history"></i> Riwayat</a>
+            <a href="export-owner.html" class="sidebar-nav-item"><i class="fas fa-file-export"></i> Laporan</a>
+        <div class="sidebar-spacer"></div>
+        <button class="sidebar-logout" onclick="doLogout()">
+            <i class="fas fa-right-from-bracket"></i> Logout
+        </button>
+    </aside>
+<div class="owner-main-content">
+
+<div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-gamepad"></i></div>
+            PRINCE<span>GAMES</span>
+        </div>
+        <div class="role-badge">OWNER</div>
+    </div>
+    <button class="nav-btn btn-logout" onclick="doLogout()"><i class="fas fa-right-from-bracket"></i><span>Logout</span></button>
+</div>
+
+<div class="main">
+
+    <div class="page-header">
+        <h1>Owner Dashboard</h1>
+        <p>Real-time business KPIs &amp; pendapatan tercatat</p>
+    </div>
+
+    <!-- KPI Row -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Occupancy <div class="kpi-icon cyan"><i class="fas fa-wave-square"></i></div></div>
+            <div class="kpi-value" id="kpi-occupancy">0%</div>
+            <div class="kpi-sub" id="kpi-occupancy-sub">0 of 0 units</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Sesi Aktif <div class="kpi-icon purple"><i class="fas fa-users"></i></div></div>
+            <div class="kpi-value" id="kpi-sessions">0</div>
+            <div class="kpi-sub" id="kpi-sessions-sub">0 completed</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Total Transaksi <div class="kpi-icon green"><i class="fas fa-receipt"></i></div></div>
+            <div class="kpi-value" id="kpi-trx">0</div>
+            <div class="kpi-sub" id="kpi-trx-sub">periode ini</div>
+        </div>
+    </div>
+
+    <!-- Revenue Card dengan Filter -->
+    <div class="revenue-card">
+        <div class="revenue-header">
+            <div>
+                <div class="revenue-title">💰 Total Pendapatan Tercatat</div>
+                <div id="filter-label" style="font-size:11px;color:var(--muted);margin-top:3px">Filter: Hari Ini</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <div class="filter-pills">
+                    <button class="pill active" onclick="setFilter('harian')">Harian</button>
+                    <button class="pill" onclick="setFilter('mingguan')">Mingguan</button>
+                    <button class="pill" onclick="setFilter('bulanan')">Bulanan</button>
+                    <button class="pill" onclick="setFilter('semua')">Semua</button>
+                </div>
+                <button class="btn-reset" onclick="konfirmasiReset()">
+                    <i class="fas fa-trash-can"></i> Reset
+                </button>
+            </div>
+        </div>
+        <div class="revenue-amount" id="rev-amount">Rp 0</div>
+        <div class="revenue-label" id="rev-label">Memuat data...</div>
+
+        <!-- Tabel riwayat pendapatan -->
+        <div style="overflow-x:auto;margin-top:16px">
+            <table class="income-table">
+                <thead>
+                    <tr>
+                        <th>Unit</th>
+                        <th>Customer</th>
+                        <th>Mulai</th>
+                        <th>Stop</th>
+                        <th>Tanggal</th>
+                        <th>Keterangan</th>
+                        <th style="text-align:right">Pendapatan</th>
+                    </tr>
+                </thead>
+                <tbody id="income-tbody">
+                    <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Memuat...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Active & Completed -->
+    <div class="two-col">
+        <div class="section-card">
+            <div class="section-title">Sesi Aktif Sekarang</div>
+            <div id="active-list"><p class="empty-state">Tidak ada sesi aktif.</p></div>
+        </div>
+        <div class="section-card">
+            <div class="section-title">Sesi Selesai Hari Ini</div>
+            <div id="completed-list"><p class="empty-state">Belum ada sesi selesai hari ini.</p></div>
+        </div>
+    </div>
+
+</div>
+
+<nav class="bottom-nav">
+    <div class="bnav-item active"><i class="fas fa-th-large"></i><span>Beranda</span></div>
+    <a href="manage-owner.html" class="bnav-item inactive"><i class="fas fa-tools"></i><span>Kelola</span></a>
+    <a href="history-owner.html" class="bnav-item inactive"><i class="fas fa-history"></i><span>Riwayat</span></a>
+    <a href="export-owner.html" class="bnav-item inactive"><i class="fas fa-file-export"></i><span>Laporan</span></a>
+</nav>
+
+<script type="module">
+    import { db, collection, onSnapshot, query, orderBy, handleLogout, doc } from './auth.js';
+    import { where, writeBatch, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    window.doLogout = () => handleLogout('login-owner.html');
+
+    const fmt = n => 'Rp ' + (n || 0).toLocaleString('id-ID');
+    const todayStr  = () => new Date().toISOString().slice(0, 10);
+    const monthStr  = () => new Date().toISOString().slice(0, 7);
+
+    // ISO Week helper
+    function getISOWeek(date) {
+        const d = new Date(date);
+        d.setHours(0,0,0,0);
+        d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+        const w1 = new Date(d.getFullYear(), 0, 4);
+        const wn = 1 + Math.round(((d - w1) / 86400000 - 3 + (w1.getDay() + 6) % 7) / 7);
+        return `${d.getFullYear()}-W${String(wn).padStart(2,'0')}`;
+    }
+
+    // ── State filter ───────────────────────────────────────────────────
+    let currentFilter = 'harian';
+    let allPendapatan = [];
+
+    window.setFilter = (filter) => {
+        currentFilter = filter;
+        document.querySelectorAll('.pill').forEach(p => {
+            p.classList.toggle('active', p.textContent.toLowerCase().includes(
+                filter === 'harian' ? 'harian' :
+                filter === 'mingguan' ? 'minggu' :
+                filter === 'bulanan' ? 'bulan' : 'semua'
+            ));
+        });
+        renderPendapatan(allPendapatan);
+    };
+
+    // ── Filter data ────────────────────────────────────────────────────
+    function filterData(data) {
+        if (currentFilter === 'semua') return data;
+        const today = todayStr();
+        const week  = getISOWeek(new Date());
+        const month = monthStr();
+        return data.filter(d => {
+            if (currentFilter === 'harian')   return d.tanggal === today;
+            if (currentFilter === 'mingguan') return d.minggu  === week;
+            if (currentFilter === 'bulanan')  return d.bulan   === month;
+            return true;
+        });
+    }
+
+    // ── Render tabel pendapatan ────────────────────────────────────────
+    function renderPendapatan(data) {
+        const filtered = filterData(data);
+        const total    = filtered.reduce((s, d) => s + (d.price || 0), 0);
+
+        const labelMap = {
+            harian:   `Hari ini · ${todayStr()}`,
+            mingguan: `Minggu ini · ${getISOWeek(new Date())}`,
+            bulanan:  `Bulan ini · ${monthStr()}`,
+            semua:    'Semua waktu'
+        };
+        document.getElementById('filter-label').textContent = 'Filter: ' + (
+            currentFilter === 'harian' ? 'Hari Ini' :
+            currentFilter === 'mingguan' ? 'Minggu Ini' :
+            currentFilter === 'bulanan' ? 'Bulan Ini' : 'Semua'
+        );
+        document.getElementById('rev-amount').textContent = fmt(total);
+        document.getElementById('rev-label').textContent  = `${filtered.length} transaksi · ${labelMap[currentFilter]}`;
+        document.getElementById('kpi-trx').textContent    = filtered.length;
+        document.getElementById('kpi-trx-sub').textContent = labelMap[currentFilter];
+
+        const tbody = document.getElementById('income-tbody');
+        if (!filtered.length) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Belum ada pendapatan untuk periode ini.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtered.slice(0, 50).map(d => `
+            <tr>
+                <td><strong>${d.unitId}</strong> <span style="font-size:10px;color:var(--muted)">${d.unitType||''}</span></td>
+                <td>${d.customerName || '-'}</td>
+                <td style="color:var(--muted)">${d.startTime || '-'}</td>
+                <td style="color:var(--muted)">${d.stopTime  || '-'}</td>
+                <td style="color:var(--muted)">${d.tanggal   || '-'}</td>
+                <td><span class="${d.alasan === 'AUTO' ? 'badge-auto' : 'badge-manual'}">${d.alasan || '-'}</span></td>
+                <td style="text-align:right;font-weight:700;color:var(--green)">${fmt(d.price)}</td>
+            </tr>
+        `).join('');
+    }
+
+    // ── Listen pendapatan realtime ─────────────────────────────────────
+    onSnapshot(
+        query(collection(db, 'pendapatan'), orderBy('createdAt', 'desc')),
+        (snap) => {
+            allPendapatan = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+            renderPendapatan(allPendapatan);
+        }
+    );
+
+    // ── Reset pendapatan ───────────────────────────────────────────────
+    window.konfirmasiReset = async () => {
+        const filterLabel = currentFilter === 'harian' ? 'Hari Ini' :
+                            currentFilter === 'mingguan' ? 'Minggu Ini' :
+                            currentFilter === 'bulanan' ? 'Bulan Ini' : 'SEMUA DATA';
+
+        const { value: inputKonfirm } = await Swal.fire({
+            title: `⚠️ Reset Pendapatan ${filterLabel}?`,
+            html: `Data pendapatan <b>${filterLabel}</b> akan <b>dihapus permanen</b> dari Firebase.<br><br>Ketik <code>RESET</code> untuk konfirmasi:`,
+            input: 'text',
+            inputPlaceholder: 'Ketik RESET',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ff4d4f',
+            cancelButtonColor: '#374151',
+            confirmButtonText: 'Hapus Permanen',
+            cancelButtonText: 'Batal',
+            background: '#0d1117', color: '#e6edf3'
+        });
+
+        if (inputKonfirm !== 'RESET') {
+            if (inputKonfirm !== undefined) {
+                Swal.fire({ icon: 'error', title: 'Konfirmasi Salah', text: 'Ketik RESET dengan huruf kapital.', background: '#0d1117', color: '#e6edf3' });
+            }
+            return;
+        }
+
+        // Ambil data yang perlu dihapus
+        const toDelete = filterData(allPendapatan);
+        if (!toDelete.length) {
+            Swal.fire({ icon: 'info', title: 'Tidak ada data', text: 'Tidak ada data untuk periode ini.', background: '#0d1117', color: '#e6edf3' });
+            return;
+        }
+
+        // Hapus batch
+        try {
+            Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: '#0d1117', color: '#e6edf3' });
+
+            // Hapus per-dokumen (batch Firestore max 500)
+            const chunks = [];
+            for (let i = 0; i < toDelete.length; i += 400) chunks.push(toDelete.slice(i, i + 400));
+
+            for (const chunk of chunks) {
+                const batch = writeBatch(db);
+                chunk.forEach(d => batch.delete(doc(db, 'pendapatan', d._id)));
+                await batch.commit();
+            }
+
+            Swal.fire({ icon: 'success', title: 'Reset Berhasil!', text: `${toDelete.length} data pendapatan telah dihapus.`, background: '#0d1117', color: '#e6edf3', timer: 2500 });
+        } catch (e) {
+            console.error(e);
+            Swal.fire({ icon: 'error', title: 'Gagal Reset', text: e.message, background: '#0d1117', color: '#e6edf3' });
+        }
+    };
+
+    // ── Units realtime ─────────────────────────────────────────────────
+    let allUnits = [];
+    const timers = {};
+
+    onSnapshot(collection(db, 'units'), snap => {
+        allUnits = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const active  = allUnits.filter(u => u.status === 'Digunakan');
+        const total   = allUnits.length || 1;
+
+        document.getElementById('kpi-occupancy').textContent    = Math.round(active.length / total * 100) + '%';
+        document.getElementById('kpi-occupancy-sub').textContent = `${active.length} of ${allUnits.length} units`;
+        document.getElementById('kpi-sessions').textContent     = active.length;
+
+        // Active list
+        const aEl = document.getElementById('active-list');
+        if (!active.length) {
+            aEl.innerHTML = '<p class="empty-state">Tidak ada sesi aktif.</p>';
+        } else {
+            aEl.innerHTML = active.map(u => `
+                <div class="session-row">
+                    <div>
+                        <div class="session-name">${u.name||u.id}</div>
+                        <div class="session-price">${fmt(u.price||0)} · ${u.customerName||'-'}</div>
+                    </div>
+                    <div class="session-timer" id="tmr-${u.id}">--:--:--</div>
+                </div>`).join('');
+            active.forEach(u => {
+                if (timers[u.id]) clearInterval(timers[u.id]);
+                if (!u.endTime) return;
+                timers[u.id] = setInterval(() => {
+                    const el = document.getElementById('tmr-' + u.id);
+                    if (!el) { clearInterval(timers[u.id]); return; }
+                    const d = u.endTime - Date.now();
+                    if (d <= 0) { el.textContent = '00:00:00'; el.style.color = 'var(--orange)'; clearInterval(timers[u.id]); return; }
+                    const hh = String(Math.floor(d/3600000)).padStart(2,'0');
+                    const mm = String(Math.floor(d%3600000/60000)).padStart(2,'0');
+                    const ss = String(Math.floor(d%60000/1000)).padStart(2,'0');
+                    el.textContent = `${hh}:${mm}:${ss}`;
+                }, 1000);
+            });
+        }
+    });
+
+    // ── Completed sessions hari ini dari pendapatan ────────────────────
+    onSnapshot(
+        query(collection(db, 'pendapatan'), orderBy('createdAt', 'desc')),
+        (snap) => {
+            const today = todayStr();
+            const doneToday = snap.docs.map(d=>d.data()).filter(d => d.tanggal === today);
+            document.getElementById('kpi-sessions-sub').textContent = doneToday.length + ' completed';
+
+            const cEl = document.getElementById('completed-list');
+            if (!doneToday.length) {
+                cEl.innerHTML = '<p class="empty-state">Belum ada sesi selesai hari ini.</p>';
+            } else {
+                cEl.innerHTML = doneToday.slice(0,6).map(d => `
+                    <div class="session-row">
+                        <div>
+                            <div class="session-name">${d.unitId} · ${d.unitType||''}</div>
+                            <div class="session-price">${d.customerName||'-'} · ${d.stopTime||'-'}</div>
+                        </div>
+                        <div class="completed-price">${fmt(d.price)}</div>
+                    </div>`).join('');
+            }
+        }
+    );
+</script>
+</div></div>
+</body>
+</html>

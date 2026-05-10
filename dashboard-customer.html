@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Prince Games – Dashboard Pelanggan</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+    :root{
+      --bg:#080c12;--card:rgba(17,23,31,.9);--cyan:#00d9ff;
+      --border:rgba(255,255,255,.07);--green:#22c55e;--red:#ef4444;--amber:#f59e0b;
+    }
+    body{background:var(--bg);color:#e8eaf0;font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;padding-bottom:76px;overflow-x:hidden;}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,217,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,217,255,.018) 1px,transparent 1px);background-size:42px 42px;pointer-events:none;z-index:0;}
+
+    header{position:sticky;top:0;z-index:50;background:rgba(8,12,18,.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:13px 16px;display:flex;justify-content:space-between;align-items:center;}
+    .logo{font-size:14px;font-weight:800;letter-spacing:-.3px;text-transform:uppercase;}
+    .logo span{color:var(--cyan);}
+    .badge-role{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;border:1px solid var(--border);border-radius:4px;color:#6b7280;margin-left:8px;}
+    .btn-out-hdr{display:flex;align-items:center;gap:5px;font-size:11px;padding:7px 10px;border-radius:9px;background:rgba(255,255,255,.05);color:#9ca3af;border:1px solid var(--border);cursor:pointer;font-family:inherit;}
+
+    main{padding:20px 16px 8px;position:relative;z-index:1;}
+
+    .greeting h2{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px;}
+    .greeting p{font-size:12px;color:#6b7280;line-height:1.5;}
+
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:18px;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px 11px;position:relative;}
+    .stat-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);position:absolute;top:12px;right:12px;animation:blink 2s infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+    .stat-lbl{font-size:11px;font-weight:700;color:#9ca3af;margin-bottom:5px;}
+    .stat-val{font-size:13px;font-weight:800;color:var(--green);}
+    .stat-price{font-size:10px;color:#374151;margin-top:3px;}
+
+    .sec-box{background:rgba(13,18,26,.8);border:1px solid var(--border);border-radius:16px;padding:16px 14px;margin-top:14px;}
+    .sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+    .sec-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;}
+    .sec-title i{color:var(--cyan);font-size:12px;}
+
+    .pills{display:flex;gap:5px;}
+    .pill{font-size:10px;font-weight:700;padding:5px 9px;border-radius:7px;border:1px solid var(--border);background:transparent;color:#6b7280;cursor:pointer;font-family:inherit;transition:all .15s;}
+    .pill.on{background:var(--cyan);color:#000;border-color:var(--cyan);}
+
+    .legend{display:flex;gap:12px;margin-bottom:12px;}
+    .leg{display:flex;align-items:center;gap:5px;font-size:10px;color:#6b7280;}
+    .leg-dot{width:7px;height:7px;border-radius:50%;}
+
+    .unit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+    .unit-card{background:rgba(17,23,31,.65);border:1px solid var(--border);border-radius:11px;padding:12px;animation:fadeUp .3s ease both;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+    .unit-top{display:flex;justify-content:space-between;align-items:flex-start;}
+    .unit-name{font-size:13px;font-weight:800;letter-spacing:-.2px;}
+    .unit-type{font-size:9px;color:#4b5563;font-weight:600;margin-top:2px;}
+    .u-dot{width:8px;height:8px;border-radius:50%;margin-top:3px;}
+    .dg{background:var(--green);box-shadow:0 0 5px var(--green);}
+    .dr{background:var(--red);box-shadow:0 0 5px var(--red);}
+    .da{background:var(--amber);box-shadow:0 0 4px var(--amber);}
+    .unit-status{font-size:10px;font-weight:700;margin-top:7px;}
+    .st-t{color:var(--green);}
+    .st-d{color:var(--red);}
+    .st-m{color:var(--amber);display:flex;align-items:center;gap:4px;}
+
+    .btn-wrap{display:flex;flex-direction:column;gap:10px;margin-top:13px;}
+    .btn-booking-big{width:100%;background:var(--cyan);color:#000;font-size:13px;font-weight:800;padding:15px;border-radius:13px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;}
+    .btn-booking-big:active{filter:brightness(.88);}
+    .btn-booking-outline{width:100%;background:transparent;color:var(--cyan);border:1px solid var(--cyan);box-shadow:0 0 16px rgba(0,217,255,0.08);font-size:13px;font-weight:800;padding:15px;border-radius:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;}
+    .btn-booking-outline:active{filter:brightness(.88);}
+
+    .bk-empty{text-align:center;padding:20px 0 6px;color:#4b5563;font-size:12px;line-height:1.6;}
+
+    .rent-card{background:rgba(17,23,31,.65);border:1px solid var(--border);border-radius:11px;padding:12px;margin-bottom:8px;animation:fadeUp .3s ease both;position:relative;transition:border-color .15s;}
+    .rent-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+    .rent-console{font-size:13px;font-weight:800;}
+    .rent-type{font-size:9px;color:#4b5563;font-weight:600;margin-top:2px;}
+    .rent-badge{font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.05em;text-transform:uppercase;}
+    .rb-aktif{background:rgba(0,217,255,.12);color:var(--cyan);border:1px solid rgba(0,217,255,.25);}
+    .rb-lunas{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25);}
+    .rb-pending{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.25);}
+    .rent-row{display:flex;justify-content:space-between;margin-bottom:4px;}
+    .rent-lbl{font-size:10px;color:#6b7280;}
+    .rent-val{font-size:10px;font-weight:700;color:#d1d5db;}
+    .rent-total{font-size:13px;font-weight:800;color:var(--cyan);}
+
+    /* Tombol hapus di header section */
+    .btn-hapus-all{font-size:10px;font-weight:700;padding:5px 9px;border-radius:7px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:var(--red);cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:4px;}
+    .btn-hapus-all:active{filter:brightness(.85);}
+
+    /* Checkbox seleksi di tiap card */
+    .card-select-wrap{position:absolute;top:10px;left:10px;display:none;z-index:2;}
+    .card-select-wrap input[type=checkbox]{width:17px;height:17px;accent-color:var(--red);cursor:pointer;}
+    .select-mode .card-select-wrap{display:flex;}
+    .select-mode .rent-card{padding-left:38px;border-color:rgba(255,255,255,.12);}
+    .select-mode .rent-card.selected{border-color:var(--red);background:rgba(239,68,68,.07);}
+
+    /* Bar bawah saat mode seleksi aktif */
+    .select-bar{display:none;position:fixed;bottom:76px;left:0;right:0;z-index:200;background:rgba(8,12,18,.97);border-top:1px solid rgba(239,68,68,.25);padding:12px 16px;gap:10px;align-items:center;}
+    .select-bar.show{display:flex;}
+    .select-bar-info{flex:1;font-size:12px;font-weight:700;color:#9ca3af;}
+    .btn-batal-sel{font-size:11px;font-weight:700;padding:9px 14px;border-radius:10px;border:1px solid var(--border);background:transparent;color:#6b7280;cursor:pointer;font-family:inherit;}
+    .btn-hapus-sel{font-size:11px;font-weight:700;padding:9px 16px;border-radius:10px;border:none;background:var(--red);color:#fff;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;}
+    .btn-hapus-sel:active{filter:brightness(.85);}
+
+    nav{position:fixed;bottom:0;left:0;right:0;background:rgba(8,12,18,.98);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:10px 0 18px;display:flex;justify-content:space-around;align-items:center;z-index:100;}
+    .nav-it{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px 20px;}
+    .nav-it i{font-size:18px;color:#374151;}
+    .nav-it span{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#374151;}
+    .nav-it.on i,.nav-it.on span{color:var(--cyan);}
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;">
+    <span class="logo">Prince<span>Games</span></span>
+    <span class="badge-role">Customer</span>
+  </div>
+  <button class="btn-out-hdr" onclick="doLogout()">
+    <i class="fas fa-sign-out-alt"></i>
+  </button>
+</header>
+
+<main>
+  <div class="greeting">
+    <h2>Halo, pelanggan 👋</h2>
+    <p>Lengkapi nomor WhatsApp saat booking<br>agar pesanan tertaut otomatis.</p>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-dot"></div>
+      <div class="stat-lbl">PS3</div>
+      <div class="stat-val" id="sv3">—</div>
+      <div class="stat-price">Rp 5.000/jam</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-dot"></div>
+      <div class="stat-lbl">PS4</div>
+      <div class="stat-val" id="sv4">—</div>
+      <div class="stat-price">Rp 10.000/jam</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-dot"></div>
+      <div class="stat-lbl">PS5</div>
+      <div class="stat-val" id="sv5">—</div>
+      <div class="stat-price">Rp 15.000/jam</div>
+    </div>
+  </div>
+
+  <div class="sec-box">
+    <div class="sec-head">
+      <div class="sec-title"><i class="fas fa-bolt"></i> Status unit live</div>
+      <div class="pills">
+        <button class="pill on" onclick="doFilter('Semua',this)">Semua</button>
+        <button class="pill" onclick="doFilter('PS3',this)">PS3</button>
+        <button class="pill" onclick="doFilter('PS4',this)">PS4</button>
+        <button class="pill" onclick="doFilter('PS5',this)">PS5</button>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>Tersedia</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--red)"></div>Dipakai</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div>Maintenance</div>
+    </div>
+    <div class="unit-grid" id="unit-grid"></div>
+
+    <div class="btn-wrap">
+      <button class="btn-booking-big" onclick="location.href='booking.html'">
+        <i class="fas fa-calendar-check"></i> Booking sekarang
+      </button>
+      <button class="btn-booking-outline" onclick="location.href='rental-bawapulang.html'">
+        <i class="fas fa-house"></i> Rental bawa pulang
+      </button>
+    </div>
+  </div>
+
+  <div class="sec-box" style="margin-bottom:16px;">
+    <div class="sec-head">
+      <div class="sec-title"><i class="fas fa-check-circle"></i> Booking (<span id="bk-count">0</span>)</div>
+      <button class="btn-hapus-all" id="bk-hapus-btn" style="display:none" onclick="masukModeSeleksi('bk')">
+        <i class="fas fa-trash-can"></i> Hapus
+      </button>
+    </div>
+    <div class="bk-empty" id="bk-empty">
+      Belum ada booking. Yuk booking sesi pertamamu!
+    </div>
+    <div id="bk-list" style="display:none;"></div>
+  </div>
+
+  <!-- RIWAYAT RENTAL BAWA PULANG -->
+  <div class="sec-box" style="margin-bottom:16px;">
+    <div class="sec-head">
+      <div class="sec-title"><i class="fas fa-house"></i> Rental Bawa Pulang (<span id="rent-count">0</span>)</div>
+      <button class="btn-hapus-all" id="rent-hapus-btn" style="display:none" onclick="masukModeSeleksi('rent')">
+        <i class="fas fa-trash-can"></i> Hapus
+      </button>
+    </div>
+    <div class="bk-empty" id="rent-empty">Belum ada riwayat rental bawa pulang.</div>
+    <div id="rent-list"></div>
+  </div>
+
+  <!-- SELECT BAR (muncul saat mode seleksi) -->
+  <div class="select-bar" id="select-bar">
+    <span class="select-bar-info" id="select-info">0 dipilih</span>
+    <button class="btn-batal-sel" onclick="batalModeSeleksi()">Batal</button>
+    <button class="btn-hapus-sel" onclick="hapusYangDipilih()">
+      <i class="fas fa-trash-can"></i> <span id="select-hapus-label">Hapus</span>
+    </button>
+  </div>
+</main>
+
+<nav>
+  <div class="nav-it on">
+    <i class="fas fa-home"></i>
+    <span>Home</span>
+  </div>
+  <div class="nav-it" onclick="location.href='https://wa.me/6285769033135'">
+    <i class="ti ti-brand-whatsapp" style="font-size:18px;"></i>
+    <span>Bantuan</span>
+  </div>
+  <div class="nav-it" onclick="location.href='history-customer.html'">
+    <i class="fas fa-history"></i>
+    <span>History</span>
+  </div>
+</nav>
+
+<script type="module">
+  import { auth, db, collection, onSnapshot, handleLogout, doc } from './auth.js';
+  import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+  import { query, where, orderBy, limit, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+  let unsubBookings = null;
+  let unsubRentals  = null;
+  let currentUid    = null;
+
+  // State seleksi
+  let modeSeleksi   = null; // 'bk' | 'rent'
+  let allBookingDocs = [];  // array {id, ...data} untuk booking
+  let allRentalDocs  = [];  // array {id, ...data} untuk rental
+
+  onAuthStateChanged(auth, user => {
+    if (!user) { window.location.href = 'login-pelanggan.html'; return; }
+    currentUid = user.uid;
+    loadBookings(user.uid);
+    loadRentals(user.uid);
+  });
+
+  window.doLogout = () => handleLogout('login-pelanggan.html');
+
+  // ── Helper badge ────────────────────────────────────────────────────
+  const statusBadge = s => {
+    if (!s) return 'rb-pending';
+    const sl = s.toLowerCase();
+    if (sl.includes('aktif')) return 'rb-aktif';
+    if (sl.includes('lunas') || sl.includes('selesai') || sl.includes('dikembalikan')) return 'rb-lunas';
+    return 'rb-pending';
+  };
+  const statusIcon = s => {
+    if (!s) return 'fa-clock';
+    const sl = s.toLowerCase();
+    if (sl.includes('aktif'))   return 'fa-gamepad';
+    if (sl.includes('selesai')) return 'fa-check-circle';
+    return 'fa-clock';
+  };
+
+  // ── Render card (booking atau rental) ──────────────────────────────
+  function renderCard(item, tipe, i) {
+    const isBooking = tipe === 'bk';
+    const tgl    = item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}) : '—';
+    const total  = (item.grandTotal || item.total) ? 'Rp ' + Number(item.grandTotal || item.total).toLocaleString('id-ID') : '—';
+    const status = item.status || item.paymentStatus || 'Diproses';
+    const body   = isBooking
+      ? `<div class="rent-top">
+           <div>
+             <div class="rent-console"><i class="fas ${statusIcon(status)}" style="font-size:10px;margin-right:5px;color:var(--cyan)"></i>${item.console || '—'}</div>
+             <div class="rent-type">${item.paymentMethod || 'Booking'} · ${item.duration || '—'} Jam</div>
+           </div>
+           <span class="rent-badge ${statusBadge(status)}">${status}</span>
+         </div>
+         <div class="rent-row"><span class="rent-lbl"><i class="fas fa-calendar" style="font-size:9px;margin-right:4px"></i>Jadwal</span><span class="rent-val">${(item.date||'—')} · ${(item.time||'—')} WIB</span></div>
+         <div class="rent-row"><span class="rent-lbl"><i class="fas fa-calendar-alt" style="font-size:9px;margin-right:4px"></i>Dibuat</span><span class="rent-val">${tgl}</span></div>
+         <div class="rent-row"><span class="rent-lbl"><i class="fas fa-wallet" style="font-size:9px;margin-right:4px"></i>Total</span><span class="rent-total">${total}</span></div>`
+      : `<div class="rent-top">
+           <div>
+             <div class="rent-console">${item.console || '—'}</div>
+             <div class="rent-type">${item.paymentMethod || item.payment || 'Rental'} · ${item.duration || '—'} Jam</div>
+           </div>
+           <span class="rent-badge ${statusBadge(status)}">${status}</span>
+         </div>
+         <div class="rent-row"><span class="rent-lbl"><i class="fas fa-calendar" style="font-size:9px;margin-right:4px"></i>Tanggal</span><span class="rent-val">${tgl}</span></div>
+         <div class="rent-row"><span class="rent-lbl"><i class="fas fa-clock-rotate-left" style="font-size:9px;margin-right:4px"></i>Batas Kembali</span><span class="rent-val" style="color:var(--amber)">${item.endTime ? new Date(item.endTime).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—'}</span></div>
+         <div class="rent-row"><span class="rent-lbl"><i class="fas fa-hourglass-half" style="font-size:9px;margin-right:4px"></i>Durasi</span><span class="rent-val">${item.duration || '—'} Jam</span></div>
+         <div class="rent-row"><span class="rent-lbl"><i class="fas fa-wallet" style="font-size:9px;margin-right:4px"></i>Total</span><span class="rent-total">${total}</span></div>`;
+    return `<div class="rent-card" id="card-${item.id}" data-id="${item.id}" style="animation-delay:${i*.05}s">
+      <div class="card-select-wrap">
+        <input type="checkbox" id="chk-${item.id}" onchange="togglePilih('${item.id}')">
+      </div>
+      ${body}
+    </div>`;
+  }
+
+  // ── Load booking milik user ─────────────────────────────────────────
+  function loadBookings(uid) {
+    if (unsubBookings) unsubBookings();
+    const bkQ = query(collection(db, 'bookings'), where('userId', '==', uid));
+    unsubBookings = onSnapshot(bkQ, snap => {
+      allBookingDocs = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      document.getElementById('bk-count').textContent = allBookingDocs.length;
+      const listEl  = document.getElementById('bk-list');
+      const emptyEl = document.getElementById('bk-empty');
+      const hapusBtn = document.getElementById('bk-hapus-btn');
+      if (!allBookingDocs.length) {
+        emptyEl.style.display = 'block';
+        emptyEl.textContent   = 'Belum ada booking. Yuk booking sesi pertamamu!';
+        listEl.style.display  = 'none';
+        listEl.innerHTML      = '';
+        hapusBtn.style.display = 'none';
+        return;
+      }
+      emptyEl.style.display  = 'none';
+      listEl.style.display   = 'block';
+      hapusBtn.style.display = 'flex';
+      listEl.innerHTML = allBookingDocs.map((b, i) => renderCard(b, 'bk', i)).join('');
+    }, () => { document.getElementById('bk-empty').textContent = 'Gagal memuat booking.'; });
+  }
+
+  // ── Load rental milik user ──────────────────────────────────────────
+  function loadRentals(uid) {
+    if (unsubRentals) unsubRentals();
+    const rentQ = query(collection(db, 'rentals'), where('userId', '==', uid));
+    unsubRentals = onSnapshot(rentQ, snap => {
+      allRentalDocs = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      document.getElementById('rent-count').textContent = allRentalDocs.length;
+      const listEl  = document.getElementById('rent-list');
+      const emptyEl = document.getElementById('rent-empty');
+      const hapusBtn = document.getElementById('rent-hapus-btn');
+      if (!allRentalDocs.length) {
+        emptyEl.style.display  = 'block';
+        listEl.innerHTML       = '';
+        hapusBtn.style.display = 'none';
+        return;
+      }
+      emptyEl.style.display  = 'none';
+      hapusBtn.style.display = 'flex';
+      listEl.innerHTML = allRentalDocs.map((r, i) => renderCard(r, 'rent', i)).join('');
+    }, () => { document.getElementById('rent-empty').textContent = 'Gagal memuat riwayat.'; });
+  }
+
+  // ── MODE SELEKSI ────────────────────────────────────────────────────
+  const selectedIds = new Set();
+
+  window.masukModeSeleksi = function(tipe) {
+    modeSeleksi = tipe;
+    selectedIds.clear();
+    const listEl = document.getElementById(tipe === 'bk' ? 'bk-list' : 'rent-list');
+    listEl.classList.add('select-mode');
+    updateSelectBar();
+    document.getElementById('select-bar').classList.add('show');
+    // Pilih semua by default supaya lebih praktis, user bisa uncheck yang tidak mau dihapus
+    const items = tipe === 'bk' ? allBookingDocs : allRentalDocs;
+    items.forEach(item => {
+      selectedIds.add(item.id);
+      const chk = document.getElementById('chk-' + item.id);
+      const card = document.getElementById('card-' + item.id);
+      if (chk) chk.checked = true;
+      if (card) card.classList.add('selected');
+    });
+    updateSelectBar();
+  };
+
+  window.batalModeSeleksi = function() {
+    if (!modeSeleksi) return;
+    const listEl = document.getElementById(modeSeleksi === 'bk' ? 'bk-list' : 'rent-list');
+    listEl.classList.remove('select-mode');
+    selectedIds.clear();
+    modeSeleksi = null;
+    document.getElementById('select-bar').classList.remove('show');
+  };
+
+  window.togglePilih = function(id) {
+    const card = document.getElementById('card-' + id);
+    if (selectedIds.has(id)) {
+      selectedIds.delete(id);
+      if (card) card.classList.remove('selected');
+    } else {
+      selectedIds.add(id);
+      if (card) card.classList.add('selected');
+    }
+    updateSelectBar();
+  };
+
+  function updateSelectBar() {
+    const n = selectedIds.size;
+    document.getElementById('select-info').textContent = n + ' item dipilih';
+    document.getElementById('select-hapus-label').textContent = n > 0 ? 'Hapus (' + n + ')' : 'Hapus';
+  }
+
+  window.hapusYangDipilih = async function() {
+    if (!selectedIds.size) {
+      Swal.fire({ toast:true, position:'top', icon:'info', title:'Pilih item dulu', showConfirmButton:false, timer:2000, background:'#11171f', color:'#fff' });
+      return;
+    }
+    const col = modeSeleksi === 'bk' ? 'bookings' : 'rentals';
+    const n   = selectedIds.size;
+    const res = await Swal.fire({
+      title: 'Hapus ' + n + ' item?',
+      html: 'Data yang dihapus <strong>tidak bisa dikembalikan</strong>.<br><span style="color:#9ca3af;font-size:12px">Hanya data riwayat yang dihapus, bukan sesi aktif.</span>',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-trash-can"></i> Ya, Hapus',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#374151',
+      background: '#11171f', color: '#fff'
+    });
+    if (!res.isConfirmed) return;
+
+    Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: '#11171f', color: '#fff' });
+    try {
+      await Promise.all([...selectedIds].map(id => deleteDoc(doc(db, col, id))));
+      batalModeSeleksi();
+      Swal.fire({ toast:true, position:'top', icon:'success', title: n + ' item berhasil dihapus', showConfirmButton:false, timer:2500, background:'#11171f', color:'#fff' });
+    } catch(e) {
+      Swal.fire({ icon:'error', title:'Gagal', text:e.message, background:'#11171f', color:'#fff' });
+    }
+  };
+
+  let allUnits = [];
+  let activeFilter = 'Semua';
+
+  onSnapshot(collection(db, 'units'), snap => {
+    allUnits = [];
+    snap.forEach(d => allUnits.push({ id: d.id, ...d.data() }));
+    allUnits.sort((a, b) => a.id.localeCompare(b.id));
+    updateSummary();
+    renderUnits(activeFilter);
+  });
+
+  function updateSummary() {
+    ['PS3','PS4','PS5'].forEach(t => {
+      const arr = allUnits.filter(u => u.type === t);
+      const kosong = arr.filter(u => u.status === 'Tersedia').length;
+      const el = document.getElementById('sv' + t.slice(-1));
+      if (el) el.textContent = `${kosong}/${arr.length} kosong`;
+    });
+  }
+
+  window.doFilter = (f, btn) => {
+    activeFilter = f;
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
+    btn.classList.add('on');
+    renderUnits(f);
+  };
+
+  function renderUnits(filter) {
+    const grid = document.getElementById('unit-grid');
+    const list = filter === 'Semua' ? allUnits : allUnits.filter(u => u.type === filter);
+    if (!list.length) {
+      grid.innerHTML = `<div style="grid-column:span 2;text-align:center;padding:28px;color:#4b5563;font-size:12px;">Tidak ada unit</div>`;
+      return;
+    }
+    grid.innerHTML = list.map((u, i) => {
+      const m = u.status === 'Maintenance';
+      const d = u.status === 'Digunakan' || u.status === 'Dipakai';
+      const dot = m ? 'da' : d ? 'dr' : 'dg';
+      const stHtml = m
+        ? `<div class="unit-status st-m"><i class="fas fa-key" style="font-size:9px"></i> Maintenance</div>`
+        : d ? `<div class="unit-status st-d">Dipakai</div>`
+        : `<div class="unit-status st-t">Tersedia</div>`;
+      return `<div class="unit-card" style="animation-delay:${i * .04}s">
+        <div class="unit-top">
+          <div><div class="unit-name">${u.id}</div><div class="unit-type">${u.type}</div></div>
+          <div class="u-dot ${dot}"></div>
+        </div>
+        ${stHtml}
+      </div>`;
+    }).join('');
+  }
+</script>
+</body>
+</html>
